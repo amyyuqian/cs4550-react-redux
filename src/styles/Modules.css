@@ -1,0 +1,28 @@
+.module-container {
+  height: 500px;
+  border-right: 1px solid rgba(0,0,0,.1);
+  padding-right: 20px;
+  margin-left: -20px;
+}
+
+.module-editor {
+  display: flex;
+}
+
+.add-module {
+  padding-left: 40px;
+  margin-bottom: 10px;
+}
+
+.add-lesson {
+  max-width: 250px;
+  margin-bottom: 10px;
+}
+
+.lesson {
+  display: flex;
+}
+
+.close {
+  margin-left: 5px;
+}
