@@ -1,7 +1,8 @@
 import React from 'react';
 import ModuleService from '../services/ModuleServiceClient';
 import ModuleRow from './ModuleRow';
-import ModuleEditor from './ModuleEditor';
+import LessonTabs from './LessonTabs';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
 import '../styles/Modules.css';
 
 export default class ModuleList extends React.Component {
@@ -48,7 +49,6 @@ export default class ModuleList extends React.Component {
 
   setActive = (module) => {
       this.setState({activeModule: module});
-      this.renderModuleEditor();
   }
 
   isActive = (module) => {
@@ -70,34 +70,27 @@ export default class ModuleList extends React.Component {
     return (rows);
   }
 
-  renderModuleEditor = () => {
-    if (this.state.activeModule.id) {
-      return (
-      <ModuleEditor courseId={this.props.courseId} moduleId={this.state.activeModule.id}/>
-      )
-    }
-  }
-
   render() {
     return (
-      <div>
-        <div className="module-editor">
-          <div className="module-container col-md-3">
-            <div className="input-group add-module">
-              <input className="form-control" id="module" 
-                    placeholder="Module name" onChange={this.titleChanged}/>
-              <span className="input-group-btn">
-                <button className="btn btn-secondary" type="button" onClick={this.createModule}>Add</button>
-              </span>
+      <Router>
+        <div>
+          <div className="module-editor">
+            <div className="module-container col-md-3">
+              <div className="input-group add-module">
+                <input className="form-control" id="module" 
+                      placeholder="Module name" onChange={this.titleChanged}/>
+                <span className="input-group-btn">
+                  <button className="btn btn-secondary" type="button" onClick={this.createModule}>Add</button>
+                </span>
+              </div>
+              <ul className="listGroup modules-wrapper">
+                {this.moduleRows()}
+              </ul>
             </div>
-            <ul className="listGroup modules-wrapper">
-              {this.moduleRows()}
-            </ul>
+            <Route path="/course/:courseId/module/:moduleId" component={LessonTabs}></Route>
           </div>
-          {this.renderModuleEditor()}
         </div>
-        
-      </div>
+      </Router>
     )
   }
 }

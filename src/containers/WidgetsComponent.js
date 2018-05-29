@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom'
 import {Provider, connect} from 'react-redux'
 import {createStore} from 'redux'
 
+const BASE_URL = "https://murmuring-dawn-26453.herokuapp.com";
+
 const Heading = () => (
   <h3>Heading Widget</h3>
 )
@@ -43,8 +45,8 @@ const Item = ({item, dispatch}) => {
 }
 const ListItem = connect()(Item)
 
-const findAllItems = dispatch => {
-  fetch('http://localhost:8080/api/widget')
+const findAllItems = (dispatch) => {
+  fetch(BASE_URL + '/api/lesson/' + '/' + '/widget')
     .then(response => (response.json()))
     .then(items => dispatch({type: 'FIND_ALL_ITEMS', items: items}))
 }
@@ -62,7 +64,7 @@ class ListEditor extends React.Component {
   render() {
     return (
       <div>
-        <h1>List Editor ({this.props.items.length})</h1>
+        <h1>List Editor </h1>
         <button onClick={this.props.save}>Save</button>
         <ul>
           {this.props.items.map(item => (
@@ -86,25 +88,24 @@ let initialState = {
 const reducer = (state = initialState, action) => {
   switch (action.type) {
     case 'FIND_ALL_ITEMS':
-      return {
+      return Object.assign({}, state, {
         items: action.items
-      }
+      })
     case 'SAVE_ITEMS':
       fetch('http://localhost:8080/api/widget/save', {
-        method: 'post',
+        method: 'PUT',
         body: JSON.stringify(state.items),
         headers: {
           'content-type': 'application/json'
         }
       })
     case 'SELECT_ITEM_TYPE':
-      console.log(action.itemType);
       state.items = state.items.map(item => (
         item.id === action.id ? {
           id: item.id,
           itemType: action.itemType,
           title: item.title
-        }: item
+        } : item
       ))
       return JSON.parse(JSON.stringify(state))
     case 'SET_TITLE':
@@ -131,8 +132,11 @@ const reducer = (state = initialState, action) => {
       return state
   }
 }
-const stateToPropsMapper = (state) => (
-  {items: state.items, title: state.title}
+const stateToPropsMapper = (state, ownProps) => (
+  {
+    items: state.items, 
+    title: state.title,
+  }
 )
 const dispatcherToPropsMapper = dispatch => ({
   save: () => save(dispatch),
@@ -143,6 +147,7 @@ const App = connect(stateToPropsMapper, dispatcherToPropsMapper)(ListEditor)
 const store = createStore(reducer)
 
 export default class WidgetsComponent extends React.Component {
+
   render() {
     return (
       <Provider store={store}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import LessonService from '../services/LessonServiceClient';
 import WidgetsComponent from './WidgetsComponent';
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 
 export default class LessonTabs extends React.Component {
   constructor(props) {
@@ -10,11 +11,13 @@ export default class LessonTabs extends React.Component {
     this.state = {
       lessons: [],
       activeLesson: '',
+      courseId: this.props.match.params.courseId,
+      moduleId: this.props.match.params.moduleId,
     };
   }
 
   findAllLessonsByModule = () => {
-    this.lessonService.findAllLessonsByModule(this.props.courseId, this.props.moduleId)
+    this.lessonService.findAllLessonsByModule(this.state.courseId, this.state.moduleId)
       .then((lessons) => {
         this.setState({lessons: lessons})
       })
@@ -22,6 +25,10 @@ export default class LessonTabs extends React.Component {
 
   componentDidMount() {
     this.findAllLessonsByModule();
+    this.setState({ 
+      courseId: this.props.match.params.courseId,
+      moduleId: this.props.match.params.moduleId,
+    })
   }
 
   deleteLesson = (lessonId) => {
@@ -31,7 +38,7 @@ export default class LessonTabs extends React.Component {
   }
 
   createLesson = () => {
-    this.lessonService.createLesson(this.props.courseId, this.props.moduleId,
+    this.lessonService.createLesson(this.state.courseId, this.state.moduleId,
       this.state.lesson).then(() => { this.findAllLessonsByModule()})
   }
 
@@ -45,7 +52,6 @@ export default class LessonTabs extends React.Component {
 
   setActive = (lesson) => {
     this.setState({activeLesson: lesson});
-    this.findAllLessonsByModule(); 
   }
 
   isActive = (lesson) => {
@@ -59,15 +65,17 @@ export default class LessonTabs extends React.Component {
   lessonTabs = () => {
     let tabs = this.state.lessons.map((lesson) => {
       return (
-        <li className="nav-item lesson" key={lesson.id}>
-          <button className={this.isActive(lesson)}
-            onClick={() => {this.setActive(lesson)}}>
-            {lesson.title}
-            <button onClick={() => this.deleteLesson(lesson.id)} type="button" className="close" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
+        <Link to={`/course/${this.props.courseId}/module/${this.props.moduleId}/lesson/${lesson.id}`}>
+          <li className="nav-item lesson" key={lesson.id}>
+            <button className={this.isActive(lesson)}
+              onClick={() => {this.setActive(lesson)}}>
+              {lesson.title}
+              <button onClick={() => this.deleteLesson(lesson.id)} type="button" className="close" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
             </button>
-          </button>
-        </li>
+          </li>
+        </Link>
       )
     })
     return (tabs);
@@ -75,19 +83,22 @@ export default class LessonTabs extends React.Component {
 
   render() {
     return(
-      <div className="lesson-editor container">
-        <div className="input-group add-lesson">
-          <input className="form-control" id="lesson" 
-                placeholder="Lesson name" onChange={this.titleChanged}/>
-          <span className="input-group-btn">
-            <button className="btn btn-secondary" type="button" onClick={this.createLesson}>Add</button>
-          </span>
+      <Router>
+        <div className="lesson-editor container">
+          <div className="input-group add-lesson">
+            <input className="form-control" id="lesson" 
+                  placeholder="Lesson name" onChange={this.titleChanged}/>
+            <span className="input-group-btn">
+              <button className="btn btn-secondary" type="button" onClick={this.createLesson}>Add</button>
+            </span>
+          </div>
+          <ul className="nav nav-tabs">
+            {this.lessonTabs()}
+          </ul>
+          <Route path="/course/:courseId/module/:moduleId/lesson/:lessonId" component={WidgetsComponent}></Route>
         </div>
-        <ul className="nav nav-tabs">
-          {this.lessonTabs()}
-        </ul>
-        <WidgetsComponent />
-      </div>
+      </Router>
+      
       
     )
   }
