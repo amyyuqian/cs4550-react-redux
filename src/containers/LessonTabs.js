@@ -1,5 +1,6 @@
 import React from 'react';
 import LessonService from '../services/LessonServiceClient';
+import WidgetsComponent from './WidgetsComponent';
 
 export default class LessonTabs extends React.Component {
   constructor(props) {
@@ -85,6 +86,7 @@ export default class LessonTabs extends React.Component {
         <ul className="nav nav-tabs">
           {this.lessonTabs()}
         </ul>
+        <WidgetsComponent />
       </div>
       
     )
