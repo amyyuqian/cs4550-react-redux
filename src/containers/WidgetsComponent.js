@@ -118,12 +118,12 @@ const Link = ({url, text}) => (
 )
 
 const Item = ({item, dispatch}) => {
-  let select, widgetTitle
+  let select, widgetName
   return(
     <div className="card" key={item.id}>
       <div className="card-body">
         <form className="form-inline">
-          {item.title} {item.id}
+          {item.name} {item.id}
           <select className="form-control col-md-3 mx-2" value={item.widgetType}
                   onChange={e => (
                     dispatch({
@@ -143,11 +143,11 @@ const Item = ({item, dispatch}) => {
           <button className="btn btn-danger mx-2" onClick={e => (
             dispatch({type: 'DELETE_ITEM', id: item.id}))}>Delete</button>
           <input type="text" placeholder="Widget Name" className="form-control col-md-9 my-3" 
-            ref={node => widgetTitle = node} onChange={e =>
+            ref={node => widgetName = node} onChange={e =>
               (dispatch({
-                type: 'CHANGE_TITLE',
+                type: 'CHANGE_NAME',
                 id: item.id,
-                title: widgetTitle.value
+                name: widgetName.value
               }))}/>
           {item.widgetType === 'Heading' && <HeadingOptions item={item} />}
           {item.widgetType === 'List' && <ListOptions item={item} />}
@@ -178,7 +178,7 @@ const findAllItems = (dispatch) => {
     .then(items => dispatch({type: 'FIND_ALL_ITEMS', items: items}))
 }
 const addItem = dispatch => {
-  dispatch({type: 'ADD_ITEM', title: 'New Item', widgetType: 'Paragraph'})
+  dispatch({type: 'ADD_ITEM', name: 'New Item', widgetType: 'Heading'})
 }
 const save = dispatch => {
   dispatch({type: 'SAVE_ITEMS'})
@@ -208,7 +208,7 @@ class ListEditor extends React.Component {
 let id = 2
 let initialState = {
   items: [
-    {title: 'Heading Widget', id: 0, widgetType: 'Heading', size: 1}
+    {name: 'Heading Widget', id: 0, widgetType: 'Heading', size: 1}
   ]
 }
 const reducer = (state = initialState, action) => {
@@ -230,19 +230,19 @@ const reducer = (state = initialState, action) => {
         item.id === action.id ? {
           id: item.id,
           widgetType: action.widgetType,
-          title: item.title,
+          name: item.name,
           text: action.text,
           listItems: item.listItems,
           listType: "unordered"
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
-    case 'CHANGE_TITLE':
+    case 'CHANGE_NAME':
       state.items = state.items.map(item => (
         item.id === action.id ? {
           id: item.id,
           widgetType: item.widgetType,
-          title: action.title,
+          name: action.name,
           text: item.text,
           size: item.size
         } : item
@@ -253,7 +253,7 @@ const reducer = (state = initialState, action) => {
         item.id === action.id ? {
           id: item.id,
           widgetType: item.widgetType,
-          title: item.title,
+          name: item.name,
           text: action.text,
           size: item.size
         } : item
@@ -264,7 +264,7 @@ const reducer = (state = initialState, action) => {
         item.id === action.id ? {
           id: item.id,
           widgetType: item.widgetType,
-          title: item.title,
+          name: item.name,
           listItems: action.listItems,
           listType: item.listType
         } : item
@@ -275,7 +275,7 @@ const reducer = (state = initialState, action) => {
         item.id === action.id ? {
           id: item.id,
           widgetType: item.widgetType,
-          title: item.title,
+          name: item.name,
           listItems: item.listItems,
           listType: action.listType
         } : item
@@ -286,7 +286,7 @@ const reducer = (state = initialState, action) => {
         item.id === action.id ? {
           id: item.id,
           widgetType: item.widgetType,
-          title: item.title,
+          name: item.name,
           text: item.text,
           size: action.size
         } : item
@@ -296,7 +296,7 @@ const reducer = (state = initialState, action) => {
       return {items:
         [
           ...state.items,
-          { title: action.title,
+          { name: action.name,
             id: id++,
             itemType: action.itemType
           }
@@ -313,7 +313,6 @@ const reducer = (state = initialState, action) => {
 const stateToPropsMapper = (state) => (
   {
     items: state.items, 
-    title: state.title,
   }
 )
 const dispatcherToPropsMapper = dispatch => ({
