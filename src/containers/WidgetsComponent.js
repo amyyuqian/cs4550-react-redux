@@ -25,7 +25,7 @@ const _HeadingOptions = ({item, dispatch}) => {
 }
 
 const _TextInput = ({item, dispatch}) => {
-  let text
+  let text, href
   if (item.widgetType === "Image") {
     return (
       <input type="text" placeholder="Image source" className="form-control col-md-9 my-3" 
@@ -35,6 +35,25 @@ const _TextInput = ({item, dispatch}) => {
           id: item.id,
           src: text.value
       }))}/>
+    )
+  } else if (item.widgetType === "Link") {
+    return (
+      <div className="form-group">
+        <input type="text" placeholder="Link text" className="form-control col-md-9 my-3" 
+        ref={node => text = node} onChange={e => 
+          (dispatch({
+            type: 'CHANGE_LINK_TEXT',
+            id: item.id,
+            text: text.value
+        }))}/>
+        <input type="text" placeholder="Link URL" className="form-control col-md-9 my-3" 
+        ref={node => href = node} onChange={e => 
+          (dispatch({
+            type: 'CHANGE_LINK_URL',
+            id: item.id,
+            href: href.value
+        }))}/>
+      </div>
     )
   } else {
     return (
@@ -173,7 +192,7 @@ const Item = ({item, dispatch}) => {
           {item.widgetType === 'Paragraph' && <Paragraph text={item.text}/>}
           {item.widgetType === 'List' && <List text={item.listItems} listType={item.listType}/>}
           {item.widgetType === 'Image' && <Image src={item.src}/>}
-          {item.widgetType === 'Link' && <Link text={item.text}/>}
+          {item.widgetType === 'Link' && <Link text={item.text} url={item.href}/>}
         </div>
       </div>
     </div>
@@ -316,6 +335,28 @@ const reducer = (state = initialState, action) => {
           name: item.name,
           text: item.text,
           size: action.size
+        } : item
+      ))
+      return JSON.parse(JSON.stringify(state))
+    case 'CHANGE_LINK_TEXT':
+      state.items = state.items.map(item => (
+        item.id === action.id ? {
+          id: item.id,
+          widgetType: item.widgetType,
+          name: item.name,
+          text: action.text,
+          href: item.href
+        } : item
+      ))
+      return JSON.parse(JSON.stringify(state))
+    case 'CHANGE_LINK_URL':
+      state.items = state.items.map(item => (
+        item.id === action.id ? {
+          id: item.id,
+          widgetType: item.widgetType,
+          name: item.name,
+          text: item.text,
+          href: action.href
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
