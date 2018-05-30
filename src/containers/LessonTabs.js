@@ -65,7 +65,7 @@ export default class LessonTabs extends React.Component {
   lessonTabs = () => {
     let tabs = this.state.lessons.map((lesson) => {
       return (
-        <Link to={`/course/${this.props.courseId}/module/${this.props.moduleId}/lesson/${lesson.id}`}>
+        <Link key={lesson.id} to={`/course/${this.state.courseId}/module/${this.state.moduleId}/lesson/${lesson.id}`}>
           <li className="nav-item lesson" key={lesson.id}>
             <button className={this.isActive(lesson)}
               onClick={() => {this.setActive(lesson)}}>
