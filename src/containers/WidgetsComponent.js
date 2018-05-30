@@ -12,7 +12,6 @@ const _HeadingOptions = ({item, dispatch}) => {
       onChange={e => (
         dispatch({
           type: 'CHANGE_HEADING_SIZE',
-          widgetType: select.value,
           id: item.id,
           size: select.value
         })
@@ -25,22 +24,90 @@ const _HeadingOptions = ({item, dispatch}) => {
   )
 }
 
+const _TextInput = ({item, dispatch}) => {
+  let text
+  return (
+    <input type="text" placeholder="Text" className="form-control col-md-9 my-3" 
+    ref={node => text = node} onChange={e => 
+      (dispatch({
+        type: 'CHANGE_TEXT',
+        id: item.id,
+        text: text.value
+    }))}/>
+  )
+}
+
+const _TextAreaInput = ({item, dispatch}) => {
+  let text
+  if (item.widgetType === "Paragraph") {
+    return (
+      <textarea placeholder="Paragraph text" className="form-control col-md-9 my-3" 
+      ref={node => text = node} onChange={e => 
+        (dispatch({
+          type: 'CHANGE_TEXT',
+          id: item.id,
+          text: text.value
+      }))}/>
+    )
+  } else {
+    return (
+      <textarea placeholder="List items" className="form-control col-md-9 my-3" 
+      ref={node => text = node} onChange={e => 
+        (dispatch({
+          type: 'CHANGE_LIST_ITEMS',
+          id: item.id,
+          listItems: text.value
+      }))}/>
+    )
+  }
+}
+
+const _ListOptions = ({item, dispatch}) => {
+  let select
+  return(
+    <select className="form-control col-md-9" value={item.listType}
+      onChange={e => (
+        dispatch({
+          type: 'CHANGE_LIST_TYPE',
+          id: item.id,
+          listType: select.value
+        })
+      )}
+      ref={node => select = node}>
+      <option value="unordered">Unordered</option>
+      <option value="ordered">Ordered</option>
+    </select>
+  )
+}
+
 const Heading = ({size, text}) => {
-  if (size === "1") {
-    return (<h1>{text}</h1>)
+  if (size === "3") {
+    return (<h3>{text}</h3>)
   } else if (size === "2") {
     return (<h2>{text}</h2>)
   } else {
-    return (<h3>{text}</h3>)
+    return (<h1>{text}</h1>)
   }
 }
 
 const Paragraph = ({text}) => (
   <p>{text}</p>
 )
-const List = ({text}) => (
-  <li>{text}</li>
-)
+
+const List = ({text, listType}) => {
+  if (text === "" || typeof text === "undefined") {
+    return null;
+  }
+  let splitText = text.split("\n");
+  let listItems = splitText.map((listItem, i) => {
+    return (<li key={i}>{listItem}</li>)
+  })
+  if (listType === "unordered") {
+    return (<ul>{listItems}</ul>)
+  } else {
+    return (<ol>{listItems}</ol>)
+  }
+}
 
 const Image = ({src}) => (
   <img src="" />
@@ -51,7 +118,7 @@ const Link = ({url, text}) => (
 )
 
 const Item = ({item, dispatch}) => {
-  let select, widgetTitle, text
+  let select, widgetTitle
   return(
     <div className="card" key={item.id}>
       <div className="card-body">
@@ -62,7 +129,8 @@ const Item = ({item, dispatch}) => {
                     dispatch({
                       type: 'SELECT_ITEM_TYPE',
                       widgetType: select.value,
-                      id: item.id
+                      id: item.id,
+                      text: ''
                     })
                   )}
                   ref={node => select = node}>
@@ -82,19 +150,15 @@ const Item = ({item, dispatch}) => {
                 title: widgetTitle.value
               }))}/>
           {item.widgetType === 'Heading' && <HeadingOptions item={item} />}
-          <input type="text" placeholder="Text" className="form-control col-md-9 my-3" 
-            ref={node => text = node} onChange={e => 
-              (dispatch({
-                type: 'CHANGE_TEXT',
-                id: item.id,
-                text: text.value
-            }))}/>
+          {item.widgetType === 'List' && <ListOptions item={item} />}
+          {(item.widgetType === 'Heading' || item.widgetType === 'Link') && <TextInput item={item} />}
+          {(item.widgetType === 'Paragraph' || item.widgetType === 'List') && <TextAreaInput item={item} />}
         </form>
         <div>
           <h3>Preview</h3>
           {item.widgetType === 'Heading' && <Heading text={item.text} size={item.size}/>}
           {item.widgetType === 'Paragraph' && <Paragraph text={item.text}/>}
-          {item.widgetType === 'List' && <List text={item.text}/>}
+          {item.widgetType === 'List' && <List text={item.listItems} listType={item.listType}/>}
           {item.widgetType === 'Image' && <Image />}
           {item.widgetType === 'Link' && <Link text={item.text}/>}
         </div>
@@ -104,6 +168,9 @@ const Item = ({item, dispatch}) => {
 }
 const ListItem = connect()(Item)
 const HeadingOptions = connect()(_HeadingOptions)
+const TextInput = connect()(_TextInput)
+const TextAreaInput = connect()(_TextAreaInput)
+const ListOptions = connect()(_ListOptions)
 
 const findAllItems = (dispatch) => {
   fetch(BASE_URL + '/api/lesson/' + '/' + '/widget')
@@ -164,7 +231,9 @@ const reducer = (state = initialState, action) => {
           id: item.id,
           widgetType: action.widgetType,
           title: item.title,
-          text: item.text
+          text: action.text,
+          listItems: item.listItems,
+          listType: "unordered"
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
@@ -187,6 +256,28 @@ const reducer = (state = initialState, action) => {
           title: item.title,
           text: action.text,
           size: item.size
+        } : item
+      ))
+      return JSON.parse(JSON.stringify(state))
+    case 'CHANGE_LIST_ITEMS':
+      state.items = state.items.map(item => (
+        item.id === action.id ? {
+          id: item.id,
+          widgetType: item.widgetType,
+          title: item.title,
+          listItems: action.listItems,
+          listType: item.listType
+        } : item
+      ))
+      return JSON.parse(JSON.stringify(state))
+    case 'CHANGE_LIST_TYPE':
+      state.items = state.items.map(item => (
+        item.id === action.id ? {
+          id: item.id,
+          widgetType: item.widgetType,
+          title: item.title,
+          listItems: item.listItems,
+          listType: action.listType
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
