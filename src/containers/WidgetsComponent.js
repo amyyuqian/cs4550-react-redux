@@ -26,15 +26,27 @@ const _HeadingOptions = ({item, dispatch}) => {
 
 const _TextInput = ({item, dispatch}) => {
   let text
-  return (
-    <input type="text" placeholder="Text" className="form-control col-md-9 my-3" 
-    ref={node => text = node} onChange={e => 
-      (dispatch({
-        type: 'CHANGE_TEXT',
-        id: item.id,
-        text: text.value
-    }))}/>
-  )
+  if (item.widgetType === "Image") {
+    return (
+      <input type="text" placeholder="Image source" className="form-control col-md-9 my-3" 
+      ref={node => text = node} onChange={e => 
+        (dispatch({
+          type: 'CHANGE_IMAGE',
+          id: item.id,
+          src: text.value
+      }))}/>
+    )
+  } else {
+    return (
+      <input type="text" placeholder="Text" className="form-control col-md-9 my-3" 
+      ref={node => text = node} onChange={e => 
+        (dispatch({
+          type: 'CHANGE_TEXT',
+          id: item.id,
+          text: text.value
+      }))}/>
+    )
+  }
 }
 
 const _TextAreaInput = ({item, dispatch}) => {
@@ -110,7 +122,7 @@ const List = ({text, listType}) => {
 }
 
 const Image = ({src}) => (
-  <img src="" />
+  <img src={src} />
 )
 
 const Link = ({url, text}) => (
@@ -123,7 +135,7 @@ const Item = ({item, dispatch}) => {
     <div className="card" key={item.id}>
       <div className="card-body">
         <form className="form-inline">
-          {item.name} {item.id}
+          {item.name}
           <select className="form-control col-md-3 mx-2" value={item.widgetType}
                   onChange={e => (
                     dispatch({
@@ -151,7 +163,8 @@ const Item = ({item, dispatch}) => {
               }))}/>
           {item.widgetType === 'Heading' && <HeadingOptions item={item} />}
           {item.widgetType === 'List' && <ListOptions item={item} />}
-          {(item.widgetType === 'Heading' || item.widgetType === 'Link') && <TextInput item={item} />}
+          {(item.widgetType === 'Heading' || item.widgetType === 'Link' || item.widgetType === 'Image') 
+            && <TextInput item={item} />}
           {(item.widgetType === 'Paragraph' || item.widgetType === 'List') && <TextAreaInput item={item} />}
         </form>
         <div>
@@ -159,7 +172,7 @@ const Item = ({item, dispatch}) => {
           {item.widgetType === 'Heading' && <Heading text={item.text} size={item.size}/>}
           {item.widgetType === 'Paragraph' && <Paragraph text={item.text}/>}
           {item.widgetType === 'List' && <List text={item.listItems} listType={item.listType}/>}
-          {item.widgetType === 'Image' && <Image />}
+          {item.widgetType === 'Image' && <Image src={item.src}/>}
           {item.widgetType === 'Link' && <Link text={item.text}/>}
         </div>
       </div>
@@ -178,7 +191,7 @@ const findAllItems = (dispatch) => {
     .then(items => dispatch({type: 'FIND_ALL_ITEMS', items: items}))
 }
 const addItem = dispatch => {
-  dispatch({type: 'ADD_ITEM', name: 'New Item', widgetType: 'Heading'})
+  dispatch({type: 'ADD_ITEM', name: 'New Item', widgetType: 'Heading', size: 1})
 }
 const save = dispatch => {
   dispatch({type: 'SAVE_ITEMS'})
@@ -233,7 +246,7 @@ const reducer = (state = initialState, action) => {
           name: item.name,
           text: action.text,
           listItems: item.listItems,
-          listType: "unordered"
+          listType: 'unordered'
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
@@ -244,7 +257,11 @@ const reducer = (state = initialState, action) => {
           widgetType: item.widgetType,
           name: action.name,
           text: item.text,
-          size: item.size
+          size: item.size,
+          listItem: item.listItems,
+          listType: item.listType,
+          src: item.src,
+          href: item.href
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
@@ -256,6 +273,16 @@ const reducer = (state = initialState, action) => {
           name: item.name,
           text: action.text,
           size: item.size
+        } : item
+      ))
+      return JSON.parse(JSON.stringify(state))
+    case 'CHANGE_IMAGE':
+      state.items = state.items.map(item => (
+        item.id === action.id ? {
+          id: item.id,
+          widgetType: item.widgetType,
+          name: item.name,
+          src: action.src,
         } : item
       ))
       return JSON.parse(JSON.stringify(state))
